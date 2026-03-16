@@ -1,0 +1,35 @@
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C pantalla(0x27,16,2);
+#include <SoftwareSerial.h>
+SoftwareSerial BT(10,11);
+void setup() {
+  // Inicializador de pantalla LCD
+pantalla.init();
+pantalla.begin(16,2);
+pantalla.backlight();
+pantalla.clear();
+pantalla.setCursor(0,1);
+pantalla.print("Hola");
+
+//Bluetooth HC05
+BT.begin(9600);
+Serial.begin(9600);
+
+}
+
+void loop() {
+  //lcd
+pantalla.display();
+pantalla.print("Hola");
+delay(10000);
+pantalla.noDisplay();
+delay(4000);
+pantalla.clear();
+//bt
+if (BT.available()) {
+  Serial.write(BT.read());
+}
+if (Serial.available()){
+  BT.write(Serial.read());
+}
+}
