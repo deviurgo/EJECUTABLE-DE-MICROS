@@ -1,8 +1,10 @@
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C pantalla(0x27,16,2);
 #include <Wire.h>
+//bt
 #include <SoftwareSerial.h>
-SoftwareSerial BT(10,11);
+SoftwareSerial BT(11,10);
+char comando;
 //pinout del l293d
 int IN1=3;
 int IN2=4;
@@ -10,7 +12,9 @@ int EN1=2;
 int IN3=6;
 int IN4=7;
 int EN2=5;
+
 void setup() {
+ 
   // Inicializador de pantalla LCD
 pantalla.init();
 pantalla.begin(16,1);
@@ -31,7 +35,7 @@ pinMode(IN2, OUTPUT);
 //Bluetooth HC05
 BT.begin(9600);
 Serial.begin(9600);
-
+Serial.println("LIsto");
 }
 
 void loop() {
@@ -42,71 +46,61 @@ pantalla.clear();
 
 //bt
 if (BT.available()) {
-  Serial.write(BT.read());
-}
+  comando=BT.read();
+  BT.write(comando);
+  Serial.print("Recibido ");
+  Serial.println(comando);
 if (Serial.available()){
   BT.write(Serial.read());
 }
-//MOTOR
-//movimientos
-delay(2000);
-pantalla.print("izq avanza");
-digitalWrite(EN1, HIGH);//motor izquierdo adelante
+}
+  if (comando=='A'){
+    pantalla.print("Avanzando");
+digitalWrite(EN1, HIGH);
+digitalWrite(EN2, HIGH);
 digitalWrite(IN1, HIGH);
 digitalWrite(IN2, LOW);
-delay(1000);
-pantalla.clear();
-digitalWrite(EN1, LOW);
-delay(2000);
-pantalla.print("izq atras");
-digitalWrite(EN1, HIGH);//motor izquierdo atras
-digitalWrite(IN1, LOW);
-digitalWrite(IN2, HIGH);
-delay(1000);
-pantalla.clear();
-digitalWrite(EN1, LOW);
-delay(2000);
-pantalla.print("derecha avanza");
-digitalWrite(EN2, HIGH);//motor derecho adelante
 digitalWrite(IN3, HIGH);
 digitalWrite(IN4, LOW);
 delay(1000);
-pantalla.clear();
-digitalWrite(IN3, LOW);
-digitalWrite(EN2, LOW);
-delay(2000);
-pantalla.print("derecha atras");
-digitalWrite(EN2, HIGH);//motor derecho atras
+}
+ if (comando=='B'){
+  pantalla.print("Retrocediendo");
+digitalWrite(EN1, HIGH);
+digitalWrite(EN2, HIGH);
+digitalWrite(IN1, LOW);
+digitalWrite(IN2, HIGH);
 digitalWrite(IN3, LOW);
 digitalWrite(IN4, HIGH);
 delay(1000);
-pantalla.clear();
+}
+if (comando=='C'){
+  pantalla.print("GiroIzquierda");
+digitalWrite(EN1, HIGH);
 digitalWrite(EN2, LOW);
-digitalWrite(IN4, LOW);
-delay(2000);
-pantalla.print("derecho");
-digitalWrite(EN1, HIGH);//motor izquierdo adelante
 digitalWrite(IN1, HIGH);
 digitalWrite(IN2, LOW);
-digitalWrite(EN2, HIGH);//motor derecho adelante
+digitalWrite(IN3, LOW);
+digitalWrite(IN4, LOW);
+delay(1000);
+}
+if (comando=='D'){
+  pantalla.print("GiroDerecha");
+digitalWrite(EN1, LOW);
+digitalWrite(EN2, HIGH);
+digitalWrite(IN1, LOW);
+digitalWrite(IN2, LOW);
 digitalWrite(IN3, HIGH);
 digitalWrite(IN4, LOW);
-delay(2000);
-pantalla.clear();
+delay(1000);
+}
+else {
+  pantalla.print("Estacionado");
 digitalWrite(EN1, LOW);
 digitalWrite(EN2, LOW);
-digitalWrite(IN3, LOW);
-delay(2000);
-pantalla.print("reversa");
-digitalWrite(EN1, HIGH);//motor izquierdo atras
 digitalWrite(IN1, LOW);
-digitalWrite(IN2, HIGH);
-digitalWrite(EN2, HIGH);//motor derecho atras
-digitalWrite(IN3, LOW);
-digitalWrite(IN4, HIGH);
-delay(2000);
-digitalWrite(EN1, LOW);
-digitalWrite(EN2, LOW);
+digitalWrite(IN2, LOW);
 digitalWrite(IN3, LOW);
 digitalWrite(IN4, LOW);
+}
 }
