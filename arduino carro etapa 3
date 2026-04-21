@@ -1,16 +1,25 @@
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C pantalla(0x27,16,2);
 #include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
+const int mq135Pin = A3; // Pin analógico
+const int pinCelsius = A2;
+int valorSensor = 0;
+const int Trigger = 9;
+const int Echo = 8;
+
 //bt
 #include <SoftwareSerial.h>
-SoftwareSerial BT(11,10);
+SoftwareSerial BT(4,7);
 char comando;
 //pinout del l293d
 int IN1=3;
-int IN2=4;
+int IN2=11;
 int EN1=2;
 int IN3=6;
-int IN4=7;
+int IN4=10;
 int EN2=5;
 
 void setup() {
@@ -21,9 +30,7 @@ pantalla.begin(16,1);
 pantalla.backlight();
 pantalla.clear();
 pantalla.setCursor(0,0);
-pantalla.print("Sistema Robotico");
-pantalla.setCursor(0, 1);
-pantalla.print("motores");
+pantalla.print("Estacion de variables ambientales movil");
 //driver l293d
 pinMode(IN1, OUTPUT);
 pinMode(IN2, OUTPUT);
@@ -31,19 +38,57 @@ pinMode(EN1, OUTPUT);
 pinMode(IN3, OUTPUT);
 pinMode(IN4, OUTPUT);
 pinMode(IN2, OUTPUT);
+analogWrite(EN1, 90);
+analogWrite(EN2, 90);
 
 //Bluetooth HC05
 BT.begin(9600);
 Serial.begin(9600);
-Serial.println("LIsto");
+Serial.println("LIsto BT");
+//temperatura
+
+Serial.println("LIsto Temp");
+//co2
+//ultrasonico
+pinMode(Trigger, OUTPUT); //pin como salida
+  pinMode(Echo, INPUT);  //pin como entrada
+  digitalWrite(Trigger, LOW);
 }
 
-void loop() {
+void loop() { /////////////////////////////////////////////////////////////////////////////////////
   //lcd
 pantalla.display();
-delay(5000);
+delay(500);
 pantalla.clear();
-
+// sensores ambientales
+//variables para guardar la lectura analoga
+valorSensor = analogRead(mq135Pin); 
+//a mayor valor, peor calidad de aire 
+// sensor de temperatura
+int escala = analogRead(pinCelsius);
+float millivolts = (escala / 1023.0) * 5000;
+float celsius = millivolts / 300;
+//mostrar en pantalla los valores
+pantalla.print("CO: ");
+pantalla.print(valorSensor);
+pantalla.setCursor(0, 1);
+pantalla.print("Temp: ");
+pantalla.print(celsius);
+pantalla.println(" C");
+delay(2000);
+//ultrasonico
+long t; //timepo que demora en llegar el eco
+long d;
+digitalWrite(Trigger, HIGH);
+delayMicroseconds(10);          //Enviamos un pulso de 10us
+digitalWrite(Trigger, LOW);
+ t = pulseIn(Echo, HIGH); //obtenemos el ancho del pulso
+d = t/59;
+Serial.print("Distancia: ");
+  Serial.print(d);      //Enviamos serialmente el valor de la distancia
+  Serial.print("cm");
+  Serial.println();
+  delay(100);
 //bt
 if (BT.available()) {
   comando=BT.read();
@@ -54,7 +99,19 @@ if (Serial.available()){
   BT.write(Serial.read());
 }
 }
+ if (d<=10){
+ pantalla.clear();
+    pantalla.print("maniobrando");
+digitalWrite(EN1, HIGH);
+digitalWrite(EN2, HIGH);
+digitalWrite(IN1, LOW);
+digitalWrite(IN2, HIGH);
+digitalWrite(IN3, LOW);
+digitalWrite(IN4, HIGH);
+delay(4000);
+    }
   if (comando=='A'){
+    pantalla.clear();
     pantalla.print("Avanzando");
 digitalWrite(EN1, HIGH);
 digitalWrite(EN2, HIGH);
@@ -62,9 +119,10 @@ digitalWrite(IN1, HIGH);
 digitalWrite(IN2, LOW);
 digitalWrite(IN3, HIGH);
 digitalWrite(IN4, LOW);
-delay(1000);
+delay(4000);
 }
  if (comando=='B'){
+  pantalla.clear();
   pantalla.print("Retrocediendo");
 digitalWrite(EN1, HIGH);
 digitalWrite(EN2, HIGH);
@@ -72,9 +130,10 @@ digitalWrite(IN1, LOW);
 digitalWrite(IN2, HIGH);
 digitalWrite(IN3, LOW);
 digitalWrite(IN4, HIGH);
-delay(1000);
+delay(4000);
 }
 if (comando=='C'){
+  pantalla.clear();
   pantalla.print("GiroIzquierda");
 digitalWrite(EN1, HIGH);
 digitalWrite(EN2, LOW);
@@ -82,9 +141,10 @@ digitalWrite(IN1, HIGH);
 digitalWrite(IN2, LOW);
 digitalWrite(IN3, LOW);
 digitalWrite(IN4, LOW);
-delay(1000);
+delay(4000);
 }
 if (comando=='D'){
+  pantalla.clear();
   pantalla.print("GiroDerecha");
 digitalWrite(EN1, LOW);
 digitalWrite(EN2, HIGH);
@@ -92,9 +152,10 @@ digitalWrite(IN1, LOW);
 digitalWrite(IN2, LOW);
 digitalWrite(IN3, HIGH);
 digitalWrite(IN4, LOW);
-delay(1000);
+delay(4000);
 }
 else {
+  pantalla.clear();
   pantalla.print("Estacionado");
 digitalWrite(EN1, LOW);
 digitalWrite(EN2, LOW);
@@ -103,4 +164,5 @@ digitalWrite(IN2, LOW);
 digitalWrite(IN3, LOW);
 digitalWrite(IN4, LOW);
 }
+
 }
